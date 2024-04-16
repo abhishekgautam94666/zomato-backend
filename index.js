@@ -13,7 +13,9 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: "https://zomto.netlify.app",
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
   })
 );
 
