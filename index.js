@@ -12,7 +12,7 @@ app.use(express.static("public"));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "https://zomto.netlify.app/",
+    origin: "https://zomto.netlify.app",
     credentials: true,
   })
 );
