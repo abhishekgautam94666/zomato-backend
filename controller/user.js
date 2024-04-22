@@ -148,7 +148,7 @@ const updateUser = async (req, res, next) => {
       update.password = hashPassword;
     }
 
-    if (req.file) {
+    if (req.file && oldUser.avtar?.public_id) {
       // delete old avtar from cloudinary
       const public_id = oldUser.avtar?.public_id;
       const result = await deleteFromCloudinary(public_id, "image");
@@ -156,6 +156,12 @@ const updateUser = async (req, res, next) => {
         return next(new ErrorHandler("erorr deleting image", 500));
       }
 
+      const avtarLocalPath = req.file?.path;
+      uploadAvtar = await uploadOnCloudinary(avtarLocalPath);
+      if (!uploadAvtar) {
+        return next(new ErrorHandler("image upload failed", 500));
+      }
+    } else {
       const avtarLocalPath = req.file?.path;
       uploadAvtar = await uploadOnCloudinary(avtarLocalPath);
       if (!uploadAvtar) {
