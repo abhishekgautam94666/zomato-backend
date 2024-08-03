@@ -13,12 +13,10 @@ const router = express.Router();
 
 router.route("/signUp").post(signUp);
 router.route("/login").post(login);
-router.route("/logout").get(verifyJwt, logOut);
+router.route("/logout").get(verifyJwt,logOut);
 router.route("/getUser/:userId").get(getCurrentUser);
 router
   .route("/update/:userId")
   .post(verifyJwt, upload.single("avtar"), updateUser);
-
-  
 
 export default router;

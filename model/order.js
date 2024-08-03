@@ -4,7 +4,7 @@ const orderItemSchema = new mongoose.Schema({
   name: String,
   quantity: Number,
   price: Number,
-  Url: String,
+  url: String,
 });
 
 const orderSchema = new mongoose.Schema(
@@ -13,6 +13,9 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Restaurant",
       required: true,
+    },
+    userAddress: {
+      type: String,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,

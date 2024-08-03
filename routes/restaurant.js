@@ -6,6 +6,7 @@ import {
   foodmenu,
   getRestaurantmenu,
   myRestaurant,
+  SearchRestorant,
 } from "../controller/restaurant.js";
 import { verifyJwt } from "../middlewares/jwtVerify.js";
 import { upload } from "../middlewares/multer.js";
@@ -24,4 +25,6 @@ router.route("/getMenuItem/:restaurantId").get(getRestaurantmenu);
 router.route("/myResto").get(verifyJwt, myRestaurant);
 router.route("/currentResto/:restoId").get(currentResto);
 router.route("/allResto").get(allResto);
+router.route("/search/:key").get(SearchRestorant);
+
 export default router;

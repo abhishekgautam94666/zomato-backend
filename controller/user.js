@@ -40,16 +40,23 @@ const signUp = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   const { email, password } = req.body;
+
+  const token = req.cookies?.token;
+  if (token) {
+    return res
+      .status(200)
+      .json({ success: true, message: "User Already Login" });
+  }
   if (!email || !password) {
     return next(new ErrorHandler("Both email password are required", 404));
   }
 
   try {
     const findUser = await User.findOne({ email });
+
     if (!findUser) {
       return next(new ErrorHandler("UserNot found", 404));
     }
-    console.log("hash password", findUser.password);
     const comaprePassword = await bcrypt.compare(password, findUser.password);
     if (!comaprePassword) {
       return next(new ErrorHandler("Invalid password", 401));
@@ -62,6 +69,7 @@ const login = async (req, res, next) => {
     };
 
     const token = Jwt.sign(userData, process.env.SECRET_KEY);
+  
 
     const Option = {
       httpOnly: true,
@@ -121,7 +129,7 @@ const getCurrentUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
   const { userId } = req.params;
-  const { name, email, password, phoneNO, address } = req.body;
+  const { name, email, phoneNO, address } = req.body;
   if (!isValidObjectId(userId)) {
     return next(new ErrorHandler("Invalid User Id", 400));
   }
@@ -143,11 +151,7 @@ const updateUser = async (req, res, next) => {
     if (address) {
       update.address = address;
     }
-    if (password !== oldUser.password) {
-      const hashPassword = await bcrypt.hash(password, 10);
-      update.password = hashPassword;
-    }
-
+    
     if (req.file && oldUser.avtar?.public_id) {
       // delete old avtar from cloudinary
       const public_id = oldUser.avtar?.public_id;

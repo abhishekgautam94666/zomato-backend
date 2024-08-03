@@ -4,24 +4,27 @@ import { connectDb } from "./db/connectDb.js";
 import { config } from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import Stripe from "stripe";
+
+config({
+  path: "./.env",
+});
 
 const app = express();
+export const stripe = new Stripe(process.env.SECRET_STRIPE_KEY);
+
 app.use(express.json({ limit: "600kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "https://zomto.netlify.app",
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
   })
 );
-
-config({
-  path: "./.env",
-});
 
 connectDb();
 app.get("/", (req, res) => {

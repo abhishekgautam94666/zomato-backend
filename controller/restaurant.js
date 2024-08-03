@@ -3,6 +3,7 @@ import { Restaurant } from "../model/restaurant.js";
 import { Menu } from "../model/menu.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isValidObjectId } from "mongoose";
+import redis from "../db/redisClient.js";
 
 const createRestaurant = async (req, res, next) => {
   const {
@@ -23,6 +24,10 @@ const createRestaurant = async (req, res, next) => {
 
     if (!req.user) {
       return next(new ErrorHandler("plesae login", 402));
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return next(new ErrorHandler("Please provide images", 400));
     }
 
     if (req.files) {
@@ -140,7 +145,7 @@ const myRestaurant = async (req, res, next) => {
   }
   try {
     const restaurant = await Restaurant.find({ userId: req.user._id });
-    if (!restaurant) {
+    if (restaurant.length < 1) {
       return next(new ErrorHandler("plesae Add Restaurant", 404));
     }
     return res.status(200).json({
@@ -155,10 +160,25 @@ const myRestaurant = async (req, res, next) => {
 
 const allResto = async (req, res, next) => {
   try {
+    const rediskey = "all_restaurant";
+    const cacheData = await redis.get(rediskey);
+
+    if (cacheData) {
+      return res.status(200).json({
+        success: true,
+        message: "All restaurants are here (from cache)",
+        resto: JSON.parse(cacheData),
+      });
+    }
+
+    // If not present in Redis, fetch from database
     const resto = await Restaurant.find();
     if (!resto) {
-      return next(new ErrorHandler("no any restaurant", 404));
+      return next(new ErrorHandler("NO any restaurant", 404));
     }
+
+    // Set cache to redis
+    await redis.set(rediskey, JSON.stringify(resto), "EX", 3600);
 
     return res.status(200).json({
       success: true,
@@ -192,6 +212,36 @@ const currentResto = async (req, res, next) => {
   }
 };
 
+const SearchRestorant = async (req, res, next) => {
+  try {
+    const { key } = req.params;
+    const restaurants = await Restaurant.find({
+      $or: [
+        { name: { $regex: key, $options: "i" } },
+        { cuisine_type: { $regex: key, $options: "i" } },
+      ],
+    });
+
+    if (restaurants.length == 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No any restaurants",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Restaurants found",
+      data: restaurants,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error searching restaurants",
+      error: error.message,
+    });
+  }
+};
+
 export {
   createRestaurant,
   foodmenu,
@@ -199,4 +249,5 @@ export {
   myRestaurant,
   currentResto,
   allResto,
+  SearchRestorant,
 };

@@ -3,22 +3,23 @@ import { Order } from "../model/order.js";
 import { isValidObjectId } from "mongoose";
 
 const addToCart = async (req, res, next) => {
-  const { userId, status, items, restaurantId } = req.body;
-  if (!isValidObjectId(restaurantId)) {
-    return next(new ErrorHandler("Invalid restaurant Id", 400));
-  }
+  const cartItems = req.body;
 
-  if (!isValidObjectId(userId)) {
-    return next(new ErrorHandler("Invalid restaurant Id", 400));
-  }
+  const requestData = cartItems.map((items) => ({
+    items: {
+      name: items.items.name,
+      price: Number(items.items.price),
+      quantity: items.items.quantity,
+      url: items.items.Url,
+    },
+    restaurantId: items.restaurantId,
+    userAddress: items.userAddress,
+    userId: items.userId,
+    status: items.status,
+  }));
 
   try {
-    const createOrder = await Order.create({
-      restaurantId,
-      userId,
-      items,
-      status,
-    });
+    const createOrder = await Order.insertMany(requestData);
     if (!createOrder) {
       return next(new ErrorHandler(" Failed to make an Order", 500));
     }
@@ -85,11 +86,11 @@ const deleteOrder = async (req, res, next) => {
   try {
     const del = await Order.findByIdAndDelete(id);
     if (!del) {
-      return next(new ErrorHandler("Failed to Delete", 500));
+      return next(new ErrorHandler("Failed to Cancel", 500));
     }
     return res.status(201).json({
       success: true,
-      message: "remove success",
+      message: "cancel order",
       del,
     });
   } catch (error) {
@@ -106,7 +107,7 @@ const userOrder = async (req, res, next) => {
   try {
     const orders = await Order.find({ userId: userId });
     if (orders.length < 1) {
-      return next(new ErrorHandler("cart is empty", 404));
+      return next(new ErrorHandler("No any orders", 404));
     }
     return res.status(200).json({
       success: true,
