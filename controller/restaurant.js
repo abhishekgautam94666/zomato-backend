@@ -3,7 +3,7 @@ import { Restaurant } from "../model/restaurant.js";
 import { Menu } from "../model/menu.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isValidObjectId } from "mongoose";
-import redis from "../db/redisClient.js";
+// import redis from "../db/redisClient.js";
 
 const createRestaurant = async (req, res, next) => {
   const {
@@ -160,16 +160,16 @@ const myRestaurant = async (req, res, next) => {
 
 const allResto = async (req, res, next) => {
   try {
-    const rediskey = "all_restaurant";
-    const cacheData = await redis.get(rediskey);
+    // const rediskey = "all_restaurant";
+    // const cacheData = await redis.get(rediskey);
 
-    if (cacheData) {
-      return res.status(200).json({
-        success: true,
-        message: "All restaurants are here (from cache)",
-        resto: JSON.parse(cacheData),
-      });
-    }
+    // if (cacheData) {
+    //   return res.status(200).json({
+    //     success: true,
+    //     message: "All restaurants are here (from cache)",
+    //     resto: JSON.parse(cacheData),
+    //   });
+    // }
 
     // If not present in Redis, fetch from database
     const resto = await Restaurant.find();
@@ -178,7 +178,7 @@ const allResto = async (req, res, next) => {
     }
 
     // Set cache to redis
-    await redis.set(rediskey, JSON.stringify(resto), "EX", 3600);
+    //await redis.set(rediskey, JSON.stringify(resto), "EX", 3600);
 
     return res.status(200).json({
       success: true,
